@@ -1,4 +1,7 @@
+import team
+
 type Unit* = ref object of RootObj
+  name*: string
   cost*: int
   attack*: int
   defense*: int
@@ -8,10 +11,12 @@ type Unit* = ref object of RootObj
   attacked*: bool
   moved*: bool
   deployed*: bool
+  team*: Team
 # unitType - has unit name and special power info
 
 proc makeBasicUnit*(): Unit =
    var unit = Unit()
+   unit.name = "basic"
    unit.cost = 1
    unit.attack = 1
    unit.defense = 1

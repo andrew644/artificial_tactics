@@ -1,4 +1,4 @@
-import unit
+import unit, team
 
 const handSize = 10
 const buildPointsPerTurn = 1
@@ -9,8 +9,7 @@ type
     victoryPoints: int
     buildPoints: int
     team: Team
-  Team* = enum blue, red
-
+               
 proc getHandSize*(player: Player): int =
   return handSize
 
@@ -38,13 +37,17 @@ proc accumulateBuildPoints*(player: Player): int =
 proc makeBasicBluePlayer*(): Player =
   var player = Player()
   for i in 0..handSize:
-    discard player.putUnit(makeBasicUnit(), i)
+    let unit = makeBasicUnit()
+    unit.team = blue
+    discard player.putUnit(unit, i)
   player.team = blue               
   return player
 
 proc makeBasicRedPlayer*(): Player =
   var player = Player()
   for i in 0..handSize:
-    discard player.putUnit(makeBasicUnit(), i)
+    let unit = makeBasicUnit()
+    unit.team = red
+    discard player.putUnit(unit, i)
   player.team = red               
   return player
