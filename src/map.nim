@@ -7,8 +7,14 @@ type
   UnitMap = array[mapHeight, array[mapWidth, Unit]]
   Map* = ref object
     unitMap: UnitMap
+  Point* = object
+    x: int
+    y: int
 
-proc insideMap(x: int, y: int): bool =
+proc newPoint*(x: int, y: int): Point =
+  return Point(x: x, y: y)
+    
+proc insideMap*(map: Map, x: int, y: int): bool =
   return x >= 0 and y >= 0 and x < mapWidth and y < mapHeight
 
 proc getMapWidth*(map: Map): int =
@@ -18,12 +24,12 @@ proc getMapHeight*(map: Map): int =
    return mapHeight
 
 proc getUnit*(map: Map, x: int, y: int): Unit =
-  if not insideMap(x, y):
+  if not map.insideMap(x, y):
     return nil
   return map.unitMap[y][x]
 
 proc putUnit*(map: Map, unit: Unit, x: int, y: int): bool =
-  if not insideMap(x, y):
+  if not map.insideMap(x, y):
     return false
   if map.unitMap[y][x] != nil:
     # There is already something here
@@ -33,7 +39,7 @@ proc putUnit*(map: Map, unit: Unit, x: int, y: int): bool =
   return true
 
 proc removeUnit*(map: Map, x: int, y: int): bool =
-  if not insideMap(x, y):
+  if not map.insideMap(x, y):
     return false
   if map.unitMap[y][x] == nil:
     # There is nothing to remove at this space
@@ -43,7 +49,7 @@ proc removeUnit*(map: Map, x: int, y: int): bool =
   return true
 
 proc moveUnit*(map: Map, fromX: int, fromY: int, toX: int, toY: int): bool =
-  if not insideMap(fromX, fromY) or not insideMap(toX, toY):
+  if not map.insideMap(fromX, fromY) or not map.insideMap(toX, toY):
     return false
 
   let unit = map.getUnit(fromX, fromY)

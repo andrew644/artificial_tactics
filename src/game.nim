@@ -1,5 +1,6 @@
 import unit, player, team, map
 import json
+import marshal
 
 type
   Game* = ref object
@@ -59,13 +60,43 @@ proc getActiveTeam*(game: Game): string =
     }
   return json.pretty()
 
-#TODO
+#TODO write unit test
 proc isValidMove*(game: Game, team: Team, fromX: int, fromY: int, toX: int, toY: int): bool =
-  return false
+  if not (game.map.insideMap(fromX, fromY) and game.map.insideMap(toX, toY)):
+    return false
+
+  #TODO take unit speed into account
+  var north = fromY == toY + 1 and fromX == toX
+  var south = fromY == toY - 1 and fromX == toX
+  var east = fromY == toY and fromX == toX - 1
+  var west = fromY == toY and fromX == toX + 1
+  if not (north or south or east or west):
+    return false
+
+  let unit = game.map.getUnit(fromX, fromY)
+  if unit == nil or unit.team != team or unit.moved:
+    return false
   
-#TODO
+  if game.map.getUnit(toX, toY) != nil:
+    return false
+
+  return true
+  
+#TODO write unit test
 proc getValidMoves*(game: Game, team: Team, x: int, y: int): string = 
-  return "{}" 
+  var points = newSeq[Point]()
+
+  #TODO take unit speed into account
+  if game.isValidMove(team, x, y, x, y - 1):
+    points.add(newPoint(x, y - 1))
+  if game.isValidMove(team, x, y, x, y + 1):
+    points.add(newPoint(x, y + 1))
+  if game.isValidMove(team, x, y, x + 1, y):
+    points.add(newPoint(x + 1, y))
+  if game.isValidMove(team, x, y, x - 1, y):
+    points.add(newPoint(x - 1, y))
+
+  return $$points 
 
 #TODO
 proc isValidAttack*(game: Game, team: Team, fromX: int, fromY: int, toX: int, toY: int): bool =
@@ -75,23 +106,55 @@ proc isValidAttack*(game: Game, team: Team, fromX: int, fromY: int, toX: int, to
 proc getValidAttacks*(game: Game, team: Team, x: int, y: int): string =
   return "{}"
 
-#TODO
+#TODO write unit test
 proc isValidDeployment*(game: Game, team: Team, unitIndex: int, x: int, y: int): bool = 
+  let player = game.players[team]
+  let unit = player.getUnit(unitIndex)
+  if player.getBuildPoints() < unit.cost:
+    return false
+  
+  if unit == nil or unit.deployed:
+    return false
+
+  if y < 0 or y >= game.map.getMapHeight():
+    return false
+
+  if team == red:
+    if x != 0:
+      return false
+        
+  if team == blue:
+    if x != game.map.getMapWidth - 1:
+      return false 
+
+  if game.map.getUnit(x, y) != nil:
+    return false
+
   return true
   
-#TODO
 proc getValidDeployments*(game: Game, team: Team, unitIndex: int): string =
-  return "{}"
-
+  var x = 0
+  if team == blue:
+    x = game.map.getMapWidth() - 1
+    
+  var points = newSeq[Point]()
+    
+  let height = game.map.getMapHeight()
+  for y in 0..height - 1:
+    if game.isValidDeployment(team, unitIndex, x, y):
+        points.add(newPoint(x, y))
+  return $$points
   
 proc deployUnit*(game: Game, team: Team, unitIndex: int, x: int, y: int): bool =
   if not game.isValidDeployment(team, unitIndex, x, y):
     return false
   
   var unit = game.players[team].getUnit(unitIndex)
+  let player = game.players[team]
   let success = game.map.putUnit(unit, x, y)
   if success:
     unit.deployed = true
+    discard player.payBuildPoints(unit.cost)
   return success
 
 #TODO write unit test
@@ -114,13 +177,21 @@ proc attackUnit*(game: Game, team: Team, fromX: int, fromY: int, toX: int, toY: 
 
   return true
   
+proc startTurn(game: Game, team: Team) =
+  var player = game.players[team]
+  player.refreshUnits()
+  discard player.accumulateBuildPoints()
+
 proc endTurn*(game: Game, team: Team): bool =
   if game.activeTeam != team:
     return false
-  
+    
   game.turn += 1
   if game.activeTeam == red:
     game.activeTeam = blue
   else:
     game.activeTeam = red
+
+  game.startTurn(team)
+
   return true

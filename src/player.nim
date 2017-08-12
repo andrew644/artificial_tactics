@@ -32,22 +32,36 @@ proc accumulateBuildPoints*(player: Player): int =
   player.buildPoints += buildPointsPerTurn
   return player.buildPoints
 
+proc payBuildPoints*(player: Player, payment: int): int =
+  player.buildPoints -= payment
+  return player.buildPoints
+  
+proc getBuildPoints*(player: Player): int =
+  return player.buildPoints
 
 
 proc makeBasicBluePlayer*(): Player =
   var player = Player()
-  for i in 0..handSize:
+  for i in 0..handSize - 1:
     let unit = makeBasicUnit()
     unit.team = blue
     discard player.putUnit(unit, i)
   player.team = blue               
+  player.buildPoints = 1
   return player
 
 proc makeBasicRedPlayer*(): Player =
   var player = Player()
-  for i in 0..handSize:
+  for i in 0..handSize - 1:
     let unit = makeBasicUnit()
     unit.team = red
     discard player.putUnit(unit, i)
   player.team = red               
+  player.buildPoints = 1
   return player
+
+proc refreshUnits*(player: Player) =
+  for i in 0..handSize - 1:
+    player.hand[i].attacked = false
+    player.hand[i].moved = false
+    
