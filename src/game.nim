@@ -98,13 +98,44 @@ proc getValidMoves*(game: Game, team: Team, x: int, y: int): string =
 
   return $$points 
 
-#TODO
+#TODO write unit tests
 proc isValidAttack*(game: Game, team: Team, fromX: int, fromY: int, toX: int, toY: int): bool =
-  return false
+  if not (game.map.insideMap(fromX, fromY) and game.map.insideMap(toX, toY)):
+    return false
+
+  #TODO take unit range into account
+  var north = fromY == toY + 1 and fromX == toX
+  var south = fromY == toY - 1 and fromX == toX
+  var east = fromY == toY and fromX == toX - 1
+  var west = fromY == toY and fromX == toX + 1
+  if not (north or south or east or west):
+    return false
+
+  let attacker = game.map.getUnit(fromX, fromY)
+  if attacker == nil or attacker.team != team or attacker.attacked:
+    return false
+
+  let defender = game.map.getUnit(toX, toY)
+  if defender == nil or defender.team == team:
+    return false
+
+  return true
   
-#TODO
+#TODO write unit tests
 proc getValidAttacks*(game: Game, team: Team, x: int, y: int): string =
-  return "{}"
+  var points = newSeq[Point]()
+
+  #TODO take unit range into account
+  if game.isValidAttack(team, x, y, x, y - 1):
+    points.add(newPoint(x, y - 1))
+  if game.isValidAttack(team, x, y, x, y + 1):
+    points.add(newPoint(x, y + 1))
+  if game.isValidAttack(team, x, y, x + 1, y):
+    points.add(newPoint(x + 1, y))
+  if game.isValidAttack(team, x, y, x - 1, y):
+    points.add(newPoint(x - 1, y))
+
+  return $$points
 
 #TODO write unit test
 proc isValidDeployment*(game: Game, team: Team, unitIndex: int, x: int, y: int): bool = 

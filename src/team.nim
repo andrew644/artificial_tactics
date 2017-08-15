@@ -5,3 +5,9 @@ proc getTeamName*(team: Team): string =
     return "red"
   else:
     return "blue"
+
+proc parseTeam*(name: string): Team =
+  if name == "red":
+    return red
+  else:
+    return blue
