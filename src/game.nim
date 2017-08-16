@@ -37,11 +37,17 @@ proc getUnitJson(unit: Unit): JsonNode =
   
 proc getUnitFromMap*(game: Game, x: int, y: int): string =
   let unit = game.map.getUnit(x, y)
-  return getUnitJson(unit).pretty()
+  if unit == nil:
+    return "{}"
+  else:
+    return getUnitJson(unit).pretty()
 
 proc getUnitFromHand*(game: Game, team: Team, unitIndex: int): string =
   let unit = game.players[team].getUnit(unitIndex)
-  return getUnitJson(unit).pretty()
+  if unit == nil:
+    return "{}"
+  else:
+    return getUnitJson(unit).pretty()
 
 #TODO
 proc getGameState*(game: Game): string =
